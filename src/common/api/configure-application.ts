@@ -11,6 +11,9 @@ import { mapValidationErrors } from './api-validation';
 export const configureApplication = async (
   app: INestApplication,
 ): Promise<void> => {
+  // Je préfixe toutes les routes par /api, pour séparer l'API du reste du serveur.
+  app.setGlobalPrefix('api');
+
   // Je valide chaque entrée : les champs inconnus sont refusés et les erreurs passent par mon format.
   app.useGlobalPipes(
     new ValidationPipe({
@@ -29,7 +32,7 @@ export const configureApplication = async (
   const logger = await app.resolve(AppLogger);
   app.useGlobalFilters(new ApiExceptionFilter(logger));
 
-  // Je génère la documentation Swagger à partir des routes, disponible sur /docs.
+  // Je génère la documentation Swagger à partir des routes, disponible sur /api/docs.
   const swaggerConfig = new DocumentBuilder()
     .setTitle('HOOS API')
     .setDescription("Documentation de l'API du backend PWD")

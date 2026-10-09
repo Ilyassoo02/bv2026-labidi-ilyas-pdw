@@ -6,6 +6,9 @@ export const ApiCode = {
   CommonValidationError: 'api.common.validation-error',
   AuthUnauthorized: 'api.auth.unauthorized',
   AuthInvalidCredentials: 'api.auth.invalid-credentials',
+  AccountFound: 'api.account.found',
+  AccountNotFound: 'api.account.not-found',
+  AccountCreated: 'api.account.created',
 } as const;
 
 // Je déduis le type de l'un de ces codes, pour éviter les fautes de frappe.
