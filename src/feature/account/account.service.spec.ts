@@ -29,7 +29,9 @@ describe('AccountService', () => {
   it('renvoie null si le compte est absent', async () => {
     repository.findOneBy.mockResolvedValue(null);
 
-    await expect(service.findById('01ARZ3NDEKTSV4RRFFQ69G5FAV')).resolves.toBeNull();
+    await expect(
+      service.findById('01ARZ3NDEKTSV4RRFFQ69G5FAV'),
+    ).resolves.toBeNull();
   });
 
   it('transforme une entité en réponse sans les colonnes internes', async () => {
@@ -58,7 +60,7 @@ describe('AccountService', () => {
   it('crée un compte actif et le renvoie en réponse', async () => {
     const entity = new AccountEntity();
     repository.create.mockReturnValue(entity);
-    repository.save.mockImplementation(async (account: AccountEntity) =>
+    repository.save.mockImplementation((account: AccountEntity) =>
       Object.assign(account, {
         id: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
         status: AccountStatus.Active,
