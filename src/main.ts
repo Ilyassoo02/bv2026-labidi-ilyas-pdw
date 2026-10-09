@@ -1,3 +1,4 @@
+import { configureApplication } from '@common/api/configure-application';
 import { EnvService } from '@common/config/env.service';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
@@ -11,6 +12,9 @@ const bootstrap = async () => {
 
   // Je remplace le logger par défaut de NestJS par pino, pour que tous les logs aient le même format.
   app.useLogger(app.get(Logger));
+
+  // J'active ma configuration globale : validation, enveloppe de succès et gestion des erreurs.
+  await configureApplication(app);
 
   const envService: EnvService = app.get(EnvService);
   await app.listen(envService.appPort);

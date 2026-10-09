@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@root/app.module';
+import { configureApplication } from '@common/api/configure-application';
 
 // Je teste l'application complète, comme le ferait un client HTTP réel.
 describe('Health (e2e)', () => {
@@ -13,6 +14,7 @@ describe('Health (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    configureApplication(app);
     await app.init();
   });
 
