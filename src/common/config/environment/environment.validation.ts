@@ -26,6 +26,18 @@ const environmentSchema = z.object({
   NODE_ENV: appModeSchema,
   // Je valide le niveau de log : une faute comme "inof" doit empêcher le démarrage au lieu de passer silencieusement.
   LOG_LEVEL: z.enum(LogLevel).default(LogLevel.Info),
+
+  // Je déclare la connexion PostgreSQL : ces valeurs viennent du fichier .env.
+  DB_HOST: z.string().min(1).default('localhost'),
+  DB_PORT: z.coerce.number().int().min(1).max(65535).default(5432),
+  DB_USER: z.string().min(1),
+  DB_PASSWORD: z.string().min(1),
+  DB_NAME: z.string().min(1),
+  // Je lis DB_SYNC comme un texte 'true' ou 'false', puis je le convertis en booléen.
+  DB_SYNC: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
 });
 
 export type ValidatedEnvironment = z.infer<typeof environmentSchema>;

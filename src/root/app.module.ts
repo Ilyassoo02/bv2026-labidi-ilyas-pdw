@@ -1,17 +1,23 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { AppConfigModule } from '@common/config/app-config.module';
+import { DatabaseModule } from '@common/database/database.module';
 import { LoggingModule } from '@common/logging';
 import { HealthModule } from '@core/health';
+import { AccountModule } from '@feature/account/account.module';
 
-// Je suis le module racine : je n'ai aucune logique, j'assemble seulement les briques.
 @Module({})
 export class AppModule {
-  // Je calcule la composition au démarrage, car la configuration doit être prête avant les autres modules.
+  // J'assemble ici tous les modules de l'application, dans l'ordre où ils doivent démarrer.
   static register(): DynamicModule {
     return {
       module: AppModule,
-      // J'ajoute le module de logs juste après la configuration, car les logs dépendent de la configuration.
-      imports: [AppConfigModule.register(), LoggingModule, HealthModule],
+      imports: [
+        AppConfigModule.register(),
+        LoggingModule,
+        DatabaseModule,
+        HealthModule,
+        AccountModule,
+      ],
     };
   }
 }
