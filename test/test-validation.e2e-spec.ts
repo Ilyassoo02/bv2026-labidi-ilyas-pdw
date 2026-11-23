@@ -32,7 +32,11 @@ describe('TestValidation (e2e)', () => {
 
     // Je vérifie que la réponse suit le format commun { code, result, data, validationErrors }.
     expect(response.body.result).toBe(true);
-    expect(response.body.data).toEqual({ name: 'Ilyas', age: 25, role: 'USER' });
+    expect(response.body.data).toEqual({
+      name: 'Ilyas',
+      age: 25,
+      role: 'USER',
+    });
   });
 
   it('POST /api/test-validation avec un corps invalide renvoie 422 et les erreurs de validation', async () => {
