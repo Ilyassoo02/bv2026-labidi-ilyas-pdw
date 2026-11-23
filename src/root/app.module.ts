@@ -1,10 +1,15 @@
+
 import { DynamicModule, Module } from '@nestjs/common';
+
 import { AppConfigModule } from '@common/config/app-config.module';
 import { DatabaseModule } from '@common/database/database.module';
 import { LoggingModule } from '@common/logging';
+
 import { HealthModule } from '@core/health';
 import { TestValidationModule } from '@core/health/test-validation/test-validation.module';
+
 import { AccountModule } from '@feature/account/account.module';
+import { AuthModule } from '@feature/auth/auth.module';
 
 @Module({})
 export class AppModule {
@@ -18,6 +23,7 @@ export class AppModule {
         DatabaseModule,
         HealthModule,
         AccountModule,
+        AuthModule,
         TestValidationModule,
       ],
     };

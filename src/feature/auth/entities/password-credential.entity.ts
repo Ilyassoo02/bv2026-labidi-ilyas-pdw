@@ -1,9 +1,9 @@
+
 import { Column, Entity, ForeignKey, Index } from 'typeorm';
+
 import { BasePersistenceEntity } from '@common/database/base-persistence.entity';
 import { AccountEntity } from '@feature/account/account.entity';
 
-// Je stocke le hash du mot de passe et son état de sécurité.
-// Le mot de passe en clair n'est jamais enregistré.
 @Entity({ name: 'password_credential' })
 @Index('uq_password_credential_account_id', ['accountId'], {
   unique: true,
@@ -12,52 +12,39 @@ import { AccountEntity } from '@feature/account/account.entity';
   onDelete: 'RESTRICT',
 })
 export class PasswordCredentialEntity extends BasePersistenceEntity {
-  @Column({
-    name: 'account_id',
-    type: 'varchar',
-    length: 26,
-  })
+  // Je récupère le compte associé au mot de passe.
+  @Column({ name: 'account_id', type: 'varchar', length: 26 })
   accountId!: string;
 
-  @Column({
-    name: 'password_hash',
-    type: 'varchar',
-    length: 512,
-  })
+  // Je conserve uniquement le mot de passe haché.
+  @Column({ name: 'password_hash', type: 'text' })
   passwordHash!: string;
 
-  @Column({
-    name: 'hash_version',
-    type: 'varchar',
-    length: 32,
-  })
+  // Je précise la version du hachage.
+  @Column({ name: 'hash_version', type: 'varchar', length: 32 })
   hashVersion!: string;
 
-  @Column({
-    name: 'failed_attempts',
-    type: 'integer',
-    default: 0,
-  })
+  // Je compte les tentatives de connexion échouées.
+  @Column({ name: 'failed_attempts', type: 'integer', default: 0 })
   failedAttempts!: number;
 
-  @Column({
-    name: 'locked_until',
-    type: 'timestamptz',
-    nullable: true,
-  })
+  // Je conserve la date de fin du verrouillage.
+  @Column({ name: 'locked_until', type: 'timestamptz', nullable: true })
   lockedUntil!: Date | null;
 
-  @Column({
-    name: 'changed_at',
-    type: 'timestamptz',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
+  // Je conserve la date de la dernière erreur.
+  @Column({ name: 'last_failed_at', type: 'timestamptz', nullable: true })
+  lastFailedAt!: Date | null;
+
+  // Je conserve la date de la dernière utilisation.
+  @Column({ name: 'last_used_at', type: 'timestamptz', nullable: true })
+  lastUsedAt!: Date | null;
+
+  // Je conserve la date du dernier changement de mot de passe.
+  @Column({ name: 'changed_at', type: 'timestamptz' })
   changedAt!: Date;
 
-  @Column({
-    name: 'disabled_at',
-    type: 'timestamptz',
-    nullable: true,
-  })
+  // Je vérifie si le mot de passe a été désactivé.
+  @Column({ name: 'disabled_at', type: 'timestamptz', nullable: true })
   disabledAt!: Date | null;
 }
