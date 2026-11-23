@@ -14,6 +14,7 @@ export const ApiCode = {
   // Codes liés à l'authentification.
   AuthUnauthorized: 'api.auth.unauthorized',
   AuthInvalidCredentials: 'api.auth.invalid-credentials',
+  AuthRefreshInvalid: 'api.auth.refresh-invalid',
 
   // Code lié à la protection CSRF.
   AuthCsrfInvalid: 'api.security.csrf-invalid',

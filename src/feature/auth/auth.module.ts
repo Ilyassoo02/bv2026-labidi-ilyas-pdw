@@ -16,6 +16,8 @@ import { PasswordPolicyService } from './service/password-policy.service';
 import { AuthCookieService } from './service/auth-cookie.service';
 import { CsrfService } from './service/csrf.service';
 import { TokenCryptoService } from './service/token-crypto.service';
+import { AuthSessionService } from './service/auth-session.service';
+import { RefreshTokenService } from './service/refresh-token.service';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { TokenCryptoService } from './service/token-crypto.service';
     AuthCookieService,
     CsrfService,
     TokenCryptoService,
+    AuthSessionService,
+    RefreshTokenService,
   ],
 })
 export class AuthModule {}
