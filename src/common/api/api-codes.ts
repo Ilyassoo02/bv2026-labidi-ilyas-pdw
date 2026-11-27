@@ -15,9 +15,11 @@ export const ApiCode = {
   AuthUnauthorized: 'api.auth.unauthorized',
   AuthInvalidCredentials: 'api.auth.invalid-credentials',
   AuthRefreshInvalid: 'api.auth.refresh-invalid',
+  AuthEmailAlreadyUsed: 'api.auth.email-already-used',
 
-  // Code lié à la protection CSRF.
+  // Codes liés à la sécurité.
   AuthCsrfInvalid: 'api.security.csrf-invalid',
+  AuthOriginInvalid: 'api.security.origin-invalid',
 
   // Codes liés aux comptes utilisateurs.
   AccountFound: 'api.account.found',
@@ -26,5 +28,4 @@ export const ApiCode = {
 } as const;
 
 // Je déduis automatiquement le type des codes autorisés.
-// Cela permet d'éviter les fautes de frappe dans les autres fichiers.
 export type ApiCodeValue = (typeof ApiCode)[keyof typeof ApiCode];

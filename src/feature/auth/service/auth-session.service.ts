@@ -80,6 +80,10 @@ export class AuthSessionService {
     await refreshRepository.save(
       refreshRepository.create({
         sessionId: session.id,
+
+        // Je donne un identifiant de famille au refresh token.
+        familyId: session.id,
+
         tokenHash: this.tokenCrypto.fingerprint(refreshToken),
         expiresAt: refreshExpiresAt,
         consumedAt: null,

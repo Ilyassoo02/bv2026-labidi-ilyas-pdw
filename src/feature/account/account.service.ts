@@ -22,6 +22,17 @@ export class AccountService {
     return this.toResponse(saved);
   }
 
+  // Je crée un compte à l'intérieur d'une transaction.
+  async createInTransaction(
+    manager: EntityManager,
+  ): Promise<AccountEntity> {
+    const repository = manager.getRepository(AccountEntity);
+
+    const account = repository.create();
+
+    return repository.save(account);
+  }
+
   // Je recherche un compte avec son identifiant.
   async findById(id: string): Promise<AccountResponseDto | null> {
     const account = await this.accountRepository.findOneBy({ id });

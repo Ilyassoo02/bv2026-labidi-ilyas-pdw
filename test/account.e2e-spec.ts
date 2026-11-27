@@ -1,19 +1,23 @@
+
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
+
 import { configureApplication } from '@common/api/configure-application';
 import { AppModule } from '@root/app.module';
 
-// Je teste le domaine Account de bout en bout, avec la vraie base PostgreSQL.
+// Je teste que les routes Account sont protégées.
 describe('Account (e2e)', () => {
   let app: INestApplication;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule.register()],
-    }).compile();
+    const moduleFixture: TestingModule =
+      await Test.createTestingModule({
+        imports: [AppModule.register()],
+      }).compile();
 
     app = moduleFixture.createNestApplication();
+
     await configureApplication(app);
     await app.init();
   });
@@ -22,39 +26,51 @@ describe('Account (e2e)', () => {
     await app.close();
   });
 
-  it('POST /api/account crée un compte, puis GET /api/account/:id le retrouve', async () => {
-    const created = await request(app.getHttpServer())
-      .post('/api/account')
-      .expect(201);
-
-    expect(created.body.result).toBe(true);
-    expect(created.body.code).toBe('api.account.created');
-
-    const id: string = created.body.data.id;
-
-    const found = await request(app.getHttpServer())
-      .get(`/api/account/${id}`)
-      .expect(200);
-
-    expect(found.body.data).toMatchObject({ id, status: 'ACTIVE' });
-  });
-
-  it('GET /api/account/:id renvoie 404 si le compte n’existe pas', async () => {
+  // Je vérifie qu'on ne peut pas créer de compte sans connexion.
+  it('refuse POST /api/account sans authentification', async () => {
     const response = await request(app.getHttpServer())
-      .get('/api/account/01ARZ3NDEKTSV4RRFFQ69G5FAV')
-      .expect(404);
+      .post('/api/account')
+      .expect(401);
 
     expect(response.body).toMatchObject({
-      code: 'api.account.not-found',
+      code: 'api.auth.unauthorized',
       result: false,
     });
   });
 
-  it('GET /api/account/:id renvoie 400 si l’identifiant n’est pas un ULID', async () => {
+  // Je vérifie qu'on ne peut pas consulter un compte sans connexion.
+  it('refuse GET /api/account/:id sans authentification', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/account/01ARZ3NDEKTSV4RRFFQ69G5FAV')
+      .expect(401);
+
+    expect(response.body).toMatchObject({
+      code: 'api.auth.unauthorized',
+      result: false,
+    });
+  });
+
+  // Je vérifie que la sécurité passe avant la validation de l'ULID.
+  it('refuse un identifiant incorrect sans authentification', async () => {
     const response = await request(app.getHttpServer())
       .get('/api/account/pas-un-ulid')
-      .expect(400);
+      .expect(401);
 
-    expect(response.body).toMatchObject({ result: false });
+    expect(response.body).toMatchObject({
+      code: 'api.auth.unauthorized',
+      result: false,
+    });
+  });
+
+  // Je vérifie que les informations personnelles sont protégées.
+  it('refuse GET /api/account/me sans authentification', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/account/me')
+      .expect(401);
+
+    expect(response.body).toMatchObject({
+      code: 'api.auth.unauthorized',
+      result: false,
+    });
   });
 });

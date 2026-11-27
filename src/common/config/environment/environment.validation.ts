@@ -25,16 +25,29 @@ const appModeSchema = z
 const environmentSchema = z
   .object({
     // Configuration générale.
-    APP_PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+    APP_PORT: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(65535)
+      .default(3000),
 
     NODE_ENV: appModeSchema,
 
     LOG_LEVEL: z.enum(LogLevel).default(LogLevel.Info),
 
+    // Je définis les origines autorisées à accéder à mon API.
+    CORS_ORIGINS: z.string().default(''),
+
     // Configuration PostgreSQL.
     DB_HOST: z.string().min(1).default('localhost'),
 
-    DB_PORT: z.coerce.number().int().min(1).max(65535).default(5432),
+    DB_PORT: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(65535)
+      .default(5432),
 
     DB_USER: z.string().min(1),
 
@@ -175,8 +188,31 @@ const environmentSchema = z
       });
     }
 
-    // En production, les secrets de sécurité sont obligatoires.
+    // Je vérifie la configuration des origines en production.
     if (env.NODE_ENV === AppMode.Prod) {
+      if (!env.CORS_ORIGINS.trim()) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['CORS_ORIGINS'],
+          message:
+            'Les origines autorisées sont obligatoires en production',
+        });
+      }
+
+      // Je refuse une autorisation générale de toutes les origines.
+      const origins = env.CORS_ORIGINS
+        .split(',')
+        .map((origin) => origin.trim());
+
+      if (origins.includes('*')) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['CORS_ORIGINS'],
+          message:
+            'Une origine générique est interdite en production',
+        });
+      }
+
       // Je vérifie que le pepper contient au moins 32 octets.
       const pepper = Buffer.from(
         env.AUTH_REFRESH_TOKEN_PEPPER,
@@ -198,7 +234,7 @@ const environmentSchema = z
           code: 'custom',
           path: ['AUTH_TEST_REFRESH_FAILURE_POINT'],
           message:
-            'L injection de pannes est interdite en production',
+            "L'injection de pannes est interdite en production",
         });
       }
 
@@ -219,7 +255,9 @@ const environmentSchema = z
   });
 
 // Je récupère automatiquement les types validés par Zod.
-export type ValidatedEnvironment = z.infer<typeof environmentSchema>;
+export type ValidatedEnvironment = z.infer<
+  typeof environmentSchema
+>;
 
 // Je valide toutes les variables au démarrage.
 export const validateEnvironment = (
@@ -230,7 +268,10 @@ export const validateEnvironment = (
   // Si une variable est incorrecte, je refuse le démarrage.
   if (!result.success) {
     const message = result.error.issues
-      .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+      .map(
+        (issue) =>
+          `${issue.path.join('.')}: ${issue.message}`,
+      )
       .join('; ');
 
     throw new Error(

@@ -28,6 +28,14 @@ export class EnvService {
     return this.configService.get('LOG_LEVEL', { infer: true });
   }
 
+  // Je récupère la liste des origines autorisées à accéder à mon API.
+  get corsOrigins(): string[] {
+    return this.get('CORS_ORIGINS')
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0);
+  }
+
   // Configuration de la base de données PostgreSQL.
   get dbHost(): string {
     return this.configService.get('DB_HOST', { infer: true });

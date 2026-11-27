@@ -1,3 +1,4 @@
+
 import { Column, Entity, ForeignKey, Index } from 'typeorm';
 import { BasePersistenceEntity } from '@common/database/base-persistence.entity';
 import { AuthSessionEntity } from './auth-session.entity';
@@ -23,6 +24,7 @@ export class AuthRefreshTokenEntity extends BasePersistenceEntity {
   })
   sessionId!: string;
 
+  // Je conserve l'identifiant de la famille des refresh tokens.
   @Column({
     name: 'family_id',
     type: 'varchar',

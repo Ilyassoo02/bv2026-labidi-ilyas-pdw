@@ -64,7 +64,10 @@ export class RefreshTokenService {
     const csrfToken = request.header('X-CSRF-Token');
 
     if (!csrfToken) {
-      throw new AuthSecurityException(ApiCode.AuthCsrfInvalid, 403);
+      throw new AuthSecurityException(
+        ApiCode.AuthCsrfInvalid,
+        403,
+      );
     }
 
     // Je réalise toutes les modifications dans une transaction.
@@ -80,14 +83,18 @@ export class RefreshTokenService {
       );
 
       // Je recherche le jeton grâce à son empreinte.
-      const tokenHash = this.tokenCrypto.fingerprint(refreshToken);
+      const tokenHash = this.tokenCrypto.fingerprint(
+        refreshToken,
+      );
 
       const candidate = await tokenRepository.findOneBy({
         tokenHash,
       });
 
       if (!candidate) {
-        throw new AuthSecurityException(ApiCode.AuthRefreshInvalid);
+        throw new AuthSecurityException(
+          ApiCode.AuthRefreshInvalid,
+        );
       }
 
       // Je verrouille la session pendant le renouvellement.
@@ -101,7 +108,9 @@ export class RefreshTokenService {
       });
 
       if (!session) {
-        throw new AuthSecurityException(ApiCode.AuthRefreshInvalid);
+        throw new AuthSecurityException(
+          ApiCode.AuthRefreshInvalid,
+        );
       }
 
       // Je verrouille également le refresh token.
@@ -119,7 +128,9 @@ export class RefreshTokenService {
         token.tokenHash !== tokenHash ||
         token.sessionId !== session.id
       ) {
-        throw new AuthSecurityException(ApiCode.AuthRefreshInvalid);
+        throw new AuthSecurityException(
+          ApiCode.AuthRefreshInvalid,
+        );
       }
 
       // Je détecte la réutilisation d'un ancien jeton.
@@ -142,7 +153,9 @@ export class RefreshTokenService {
         session.expiresAt <= new Date() ||
         session.revokedAt !== null
       ) {
-        throw new AuthSecurityException(ApiCode.AuthRefreshInvalid);
+        throw new AuthSecurityException(
+          ApiCode.AuthRefreshInvalid,
+        );
       }
 
       // Je vérifie que le compte peut toujours se connecter.
@@ -156,23 +169,25 @@ export class RefreshTokenService {
         !account ||
         !this.accountService.canAuthenticate(account)
       ) {
-        throw new AuthSecurityException(ApiCode.AuthRefreshInvalid);
+        throw new AuthSecurityException(
+          ApiCode.AuthRefreshInvalid,
+        );
       }
 
       // Je valide la protection CSRF.
       this.csrfService.assertValid(request, session);
 
       // Je crée un nouveau refresh token.
-      const newRefreshToken = this.tokenCrypto.createOpaqueToken();
+      const newRefreshToken =
+        this.tokenCrypto.createOpaqueToken();
 
       const now = new Date();
 
+      // Je calcule sa date d'expiration.
       const refreshExpiresAt = new Date(
         Math.min(
           session.expiresAt.getTime(),
-          now.getTime() *
-            0 +
-            now.getTime() +
+          now.getTime() +
             this.envService.get(
               'AUTH_REFRESH_TOKEN_TTL_SECONDS',
             ) *
@@ -184,7 +199,13 @@ export class RefreshTokenService {
       const replacement = await tokenRepository.save(
         tokenRepository.create({
           sessionId: session.id,
-          tokenHash: this.tokenCrypto.fingerprint(newRefreshToken),
+
+          // Je conserve la famille du refresh token précédent.
+          familyId: token.familyId,
+
+          tokenHash: this.tokenCrypto.fingerprint(
+            newRefreshToken,
+          ),
           expiresAt: refreshExpiresAt,
           consumedAt: null,
           revokedAt: null,
@@ -193,7 +214,9 @@ export class RefreshTokenService {
         }),
       );
 
-      this.throwIfInjected('after-successor-persistence');
+      this.throwIfInjected(
+        'after-successor-persistence',
+      );
 
       // Je marque l'ancien jeton comme consommé.
       token.consumedAt = now;
@@ -220,7 +243,9 @@ export class RefreshTokenService {
 
     // Je refuse la connexion si un ancien jeton a été réutilisé.
     if ('replayDetected' in result) {
-      throw new AuthSecurityException(ApiCode.AuthRefreshInvalid);
+      throw new AuthSecurityException(
+        ApiCode.AuthRefreshInvalid,
+      );
     }
 
     return result;
@@ -229,9 +254,13 @@ export class RefreshTokenService {
   // Je simule certaines pannes pour les tests.
   private throwIfInjected(point: string): void {
     if (
-      this.envService.get('AUTH_TEST_REFRESH_FAILURE_POINT') === point
+      this.envService.get(
+        'AUTH_TEST_REFRESH_FAILURE_POINT',
+      ) === point
     ) {
-      throw new Error(`Injected refresh failure: ${point}`);
+      throw new Error(
+        `Injected refresh failure: ${point}`,
+      );
     }
   }
 }

@@ -1,7 +1,11 @@
+
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
+
 import { AppLogger } from '@common/logging';
+
 import { ValidationException } from './api-exception';
 import { ApiExceptionFilter } from './api-exception.filter';
 import { ApiResponseInterceptor } from './api-response.interceptor';
@@ -13,6 +17,9 @@ export const configureApplication = async (
 ): Promise<void> => {
   // Je préfixe toutes les routes par /api, pour séparer l'API du reste du serveur.
   app.setGlobalPrefix('api');
+
+  // Je récupère les cookies pour pouvoir utiliser les jetons de connexion.
+  app.use(cookieParser());
 
   // Je valide chaque entrée : les champs inconnus sont refusés et les erreurs passent par mon format.
   app.useGlobalPipes(
@@ -26,13 +33,18 @@ export const configureApplication = async (
   );
 
   // J'enveloppe chaque succès dans mon format de réponse.
-  app.useGlobalInterceptors(new ApiResponseInterceptor(app.get(Reflector)));
+  app.useGlobalInterceptors(
+    new ApiResponseInterceptor(app.get(Reflector)),
+  );
 
   // Je récupère le logger de façon asynchrone, car il est transitoire, puis je transforme chaque erreur en réponse maîtrisée.
   const logger = await app.resolve(AppLogger);
-  app.useGlobalFilters(new ApiExceptionFilter(logger));
 
-  // Je génère la documentation Swagger à partir des routes, disponible sur /api/docs.
+  app.useGlobalFilters(
+    new ApiExceptionFilter(logger),
+  );
+
+  // Je génère la documentation Swagger à partir des routes.
   const swaggerConfig = new DocumentBuilder()
     .setTitle('HOOS API')
     .setDescription("Documentation de l'API du backend PWD")

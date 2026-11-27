@@ -1,5 +1,6 @@
 
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AccountModule } from '../account/account.module';
@@ -18,6 +19,12 @@ import { CsrfService } from './service/csrf.service';
 import { TokenCryptoService } from './service/token-crypto.service';
 import { AuthSessionService } from './service/auth-session.service';
 import { RefreshTokenService } from './service/refresh-token.service';
+import { AuthService } from './service/auth.service';
+
+import { AuthController } from './controller/auth.controller';
+
+import { OriginGuard } from './guard/origin.guard';
+import { AccessAuthGuard } from './guard/access-auth.guard';
 
 @Module({
   imports: [
@@ -33,7 +40,12 @@ import { RefreshTokenService } from './service/refresh-token.service';
     ]),
   ],
 
-  // Je déclare les services utilisés dans mon module.
+  // Je déclare le contrôleur qui contient les routes d'authentification.
+  controllers: [
+    AuthController,
+  ],
+
+  // Je déclare les services et les protections de mon application.
   providers: [
     AuthIdentifierService,
     PasswordCredentialService,
@@ -44,6 +56,19 @@ import { RefreshTokenService } from './service/refresh-token.service';
     TokenCryptoService,
     AuthSessionService,
     RefreshTokenService,
+    AuthService,
+
+    // Je vérifie d'abord la provenance des requêtes.
+    {
+      provide: APP_GUARD,
+      useClass: OriginGuard,
+    },
+
+    // Je vérifie ensuite l'authentification et la session.
+    {
+      provide: APP_GUARD,
+      useClass: AccessAuthGuard,
+    },
   ],
 })
 export class AuthModule {}
